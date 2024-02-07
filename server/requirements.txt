@@ -1,0 +1,4 @@
+ultralytics==8.0.26
+flask-wtf==0.15.1
+wtforms==3.0.0
+werkzeug==2.0.2
