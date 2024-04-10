@@ -58,7 +58,7 @@ def home():
     return render_template('index.html')
 
 
-# Rendering the Webcam Rage
+# Rendering the Webcam Page
 @app.route("/webcam", methods=['GET', 'POST'])
 def webcam():
     session.clear()
