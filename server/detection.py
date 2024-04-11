@@ -2,7 +2,8 @@ from ultralytics import YOLO
 import cv2
 import math
 import numpy as np
-import datetime
+from datetime import datetime, timedelta
+import time
 # Part of new detection
 from deep_sort_realtime.deepsort_tracker import DeepSort
 # Part of newer detection
@@ -10,7 +11,7 @@ from deep_sort.deep_sort.tracker import Tracker
 from deep_sort.deep_sort import nn_matching
 from deep_sort.deep_sort.detection import Detection
 from deep_sort.tools import generate_detections as gdet
-
+from db_connection import insert_traffic_data
 
 from collections import deque
 
@@ -24,16 +25,16 @@ nn_budget = None
 GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
 
-points = [deque(maxlen=32) for _ in range(1000)] # list of deques to store the points
+points = [deque(maxlen=32) for _ in range(1000)]  # list of dequeues to store the points
 counter_A = 0
 counter_B = 0
 counter_C = 0
-start_line_A = (0, 480)
-end_line_A = (480, 480)
-start_line_B = (525, 480)
-end_line_B = (745, 480)
-start_line_C = (895, 480)
-end_line_C = (1165, 480)
+start_line_A = (0, 450)
+end_line_A = (480, 450)
+start_line_B = (525, 450)
+end_line_B = (745, 450)
+start_line_C = (895, 450)
+end_line_C = (1165, 450)
 
 # Part of newer detection
 model_filename = "config/mars-small128.pb"
@@ -65,6 +66,9 @@ def create_video_writer(video_cap, output_filename):
 
 
 def video_detection(path_x):
+    global counter_A
+    global counter_B
+    global counter_C
     video_capture = path_x
     # Create a Webcam Object
     cap = cv2.VideoCapture(video_capture)
@@ -75,23 +79,23 @@ def video_detection(path_x):
     # out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (frame_width, frame_height))
     out = create_video_writer(cap, "output.mp4")
 
+
+
     model = YOLO("../weights/yolov8s.pt")
     # Commented out. Part of New Detection Code
     # tracker = DeepSort(max_age=50)
 
-    class_names = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
-                   "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
-                   "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
-                   "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard", "sports ball", "kite", "baseball bat",
-                   "baseball glove", "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup",
-                   "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange", "broccoli",
-                   "carrot", "hot dog", "pizza", "donut", "cake", "chair", "sofa", "pottedplant", "bed",
-                   "diningtable", "toilet", "tvmonitor", "laptop", "mouse", "remote", "keyboard", "cell phone",
-                   "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
-                   "teddy bear", "hair drier", "toothbrush"
-                   ]
+    # class_names = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
+    # "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep",
+    # "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+    # "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
+    # "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
+    # "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "sofa",
+    # "pottedplant", "bed", "diningtable", "toilet", "tvmonitor", "laptop", "mouse", "remote", "keyboard",
+    # "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
+    # "teddy bear", "hair drier", "toothbrush" ]
     while True:
-        start = datetime.datetime.now()
+        start = datetime.now()
 
         success, img = cap.read()
         # if there is no frame, we have reached the end of the video
@@ -202,9 +206,9 @@ def video_detection(path_x):
                     class_ids.append(class_id)
                     # cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-        # # *************************************** #
-        # # *               TRACKING              * #
-        # # *************************************** #
+            # # *************************************** #
+            # # *               TRACKING              * #
+            # # *************************************** #
             # get the names of the detected objects
             names = [class_names[class_id] for class_id in class_ids]
             # get the features of the detected objects
@@ -257,12 +261,49 @@ def video_detection(path_x):
                     if point1 is None or point2 is None:
                         continue
                     cv2.line(img, point1, point2, (0, 255, 0), 2)
+
+                # get the last point from the points list and draw it
+                last_point_x = points[track_id][0][0]
+                last_point_y = points[track_id][0][1]
+                cv2.circle(img, (int(last_point_x), int(last_point_y)), 4, (255, 0, 255), -1)
+                # if the y coordinate of the center point is below the line, and the x coordinate is
+                # between the start and end points of the line, and the last point is above the line,
+                # increment the total number of cars crossing the line and remove the center points from the list
+                if center_y > start_line_A[1] > last_point_y and start_line_A[0] < center_x < end_line_A[0]:
+                    counter_A += 1
+
+                    total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+                    text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
+                    successful_id = insert_traffic_data(class_name, "00:00:00", total_time, "San Jose del Monte Fatima V")
+                    print(successful_id)
+                    points[track_id].clear()
+                elif center_y > start_line_B[1] and start_line_B[0] < center_x < end_line_B[0] and last_point_y < \
+                        start_line_A[1]:
+                    counter_B += 1
+
+                    total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+                    text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
+                    successful_id = insert_traffic_data(class_name, "00:00:00", total_time,
+                                                        "San Jose del Monte Fatima V")
+                    print(successful_id)
+                    points[track_id].clear()
+                elif center_y > start_line_C[1] and start_line_C[0] < center_x < end_line_C[0] and last_point_y < \
+                        start_line_A[1]:
+                    counter_C += 1
+
+                    total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+                    text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
+                    successful_id = insert_traffic_data(class_name, "00:00:00", total_time,
+                                                        "San Jose del Monte Fatima V")
+                    print(successful_id)
+                    print(text)
+                    points[track_id].clear()
         # *************************************** #
         # *           POST PROCESSING           * #
         # *************************************** #
 
         # end time to compute the fps
-        end = datetime.datetime.now()
+        end = datetime.now()
         # calculate the frame per second and draw it on the frame
         fps = f"FPS: {1 / (end - start).total_seconds():.2f}"
         cv2.putText(img, fps, (50, 50),

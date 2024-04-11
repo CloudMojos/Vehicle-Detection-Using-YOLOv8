@@ -15,7 +15,9 @@ db = client["traffic-data"]
 print(db.list_collection_names())
 
 
-def insert_traffic_data(class_type, vehicle_type, in_time, out_time, full_address):
+def insert_traffic_data(class_type, in_time, out_time, full_address, vehicle_type="public"):
+    if class_type == "car" or class_type == "van":
+        vehicle_type = "private"
     collection = db.trafficinstances
     traffic_data = {
         "class": class_type,
