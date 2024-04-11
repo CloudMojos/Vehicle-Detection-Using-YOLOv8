@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas with Image</title>
+</head>
+<body>
+    <canvas id="myCanvas" width="800" height="600"></canvas>
+    <img id="scream" src="server/static/434539768_1114332949713005_5146477429488778362_n.png" style="display: none;">
+    <!-- Loads the image to the canvas -->
+    <script>
+        window.onload = function() {
+            const canvas = document.getElementById("myCanvas");
+            const ctx = canvas.getContext("2d");
+            const img = document.getElementById("scream");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Draw the image scaled to fit the canvas
+            
+            const point1 = { x: 300, y: 100 };
+            const point2 = { x: 300, y: 300 };
+            const point3 = { x: 100, y: 100 };
+            const point4 = { x: 500, y: 300 };
+            
+            // Update point positions when sliders change
+            slider1.addEventListener("input", updatePoints);
+            slider2.addEventListener("input", updatePoints);
+            slider3.addEventListener("input", updatePoints);
+            slider4.addEventListener("input", updatePoints);
+            
+            function updatePoints() {
+                point1.x = parseInt(slider1.value) * (canvas.width / 600); // Scale x-coordinate
+                point1.y = parseInt(slider2.value) * (canvas.height / 400); // Scale y-coordinate
+                point2.x = parseInt(slider3.value) * (canvas.width / 600); // Scale x-coordinate
+                point2.y = parseInt(slider4.value) * (canvas.height / 400); // Scale y-coordinate
+                // Redraw the canvas with updated points
+                redrawCanvas();
+            }
+            
+            function redrawCanvas() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height); // Redraw the scaled image
+                
+                // Draw points and lines using scaled coordinates
+                ctx.fillStyle = "red"; // Set point color
+                ctx.fillRect(point1.x, point1.y, 5, 5); // Draw point 1
+                ctx.fillRect(point2.x, point2.y, 5, 5); // Draw point 2
+                ctx.fillRect(point3.x, point3.y, 5, 5); // Draw point 3
+                ctx.fillRect(point4.x, point4.y, 5, 5); // Draw point 4
+                
+                // Draw lines between points
+                ctx.beginPath();
+                ctx.moveTo(point1.x, point1.y);
+                ctx.lineTo(point2.x, point2.y);
+                ctx.strokeStyle = "blue";
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(point3.x, point3.y);
+                ctx.lineTo(point4.x, point4.y);
+                ctx.strokeStyle = "green";
+                ctx.stroke();
+            }
+        };
+    </script>
+    <input type="range" id="slider1" min="0" max="600" value="300">
+    <input type="range" id="slider2" min="0" max="400" value="100">
+    <input type="range" id="slider3" min="0" max="600" value="300">
+    <input type="range" id="slider4" min="0" max="400" value="300">
+</body>
+</html>
