@@ -20,13 +20,6 @@
 
 /* Display Styling, Body, Header and Section */
 body {
-    display: grid;
-    grid-template-columns: 1fr minmax(120px, 300px) minmax(min-content, 500px) 1fr;
-    grid-template-rows: auto;
-    grid-template-areas: 
-      "header header header header"
-      "...... content content ......."
-      "footer footer footer footer";
     background-color: var(--clr-dark);
 }
 
@@ -39,68 +32,10 @@ body {
 /* Header */
 
 header {
-    grid-area: header;
-    width: 100%;
-    height: 13vh;
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    padding: 1rem 1.5rem 1rem 1.5rem;
     background-color: whitesmoke;
-    box-shadow: var(--shadow-primary);
-}
-
-header .logo {
-    font-weight: bold;
-    white-space: nowrap;
-}
-
-header .links {
-    list-style: none;
-    display: flex;
-    align-items: center;
-}
-
-header .links li {
-    font-size: clamp(14px, 1rem, 50vw);
-    padding: 1rem;
-    margin-left: 1rem;
-    border-radius: 5px;
-    white-space: nowrap;
-}
-
-header .links li a {
-    text-decoration: none;
-    color: blue;
-}
-
-.links li.active::before {
-    content: '👉';
-    margin-right: 0.3rem;
-}
-
-header .links li:hover {
-    background-color: #00000050;
 }
 /* End Header */
 
-/* Content */
-.content {
-    grid-area: content;
-    background-color: var(--clr-light);
-    border-radius: 10px;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-    margin: 20px auto;
-    padding: 20px;
-    max-width: 800px;
-}
-
-.content img, .content figure {
-    max-width: 100%;
-    height: auto;
-}
-
-/* End Content*/
 
 
 

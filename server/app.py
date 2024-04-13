@@ -1,7 +1,6 @@
 from flask import Flask, render_template, Response, jsonify, request, session
 
-# FlaskForm--> it is required to receive input from the user
-# Whether uploading a video file  to our object detection model
+# FlaskForm = used for file input forms
 
 from flask_wtf import FlaskForm
 
