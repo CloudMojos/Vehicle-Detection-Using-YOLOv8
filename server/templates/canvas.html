@@ -6,86 +6,52 @@
     <title>Canvas with Image</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="../static/styles.css">
-    <script defer src="..\scripts\canvas.js"></script>
+    <script defer src="static/scripts/canvas.js"></script>
 </head>
 <body>
-    <header>
-        <h1> 📷🤖🚗 Vehicle Detection > Video</h1>
-        <ul class="links">
-            <li><a href="/home">Home</a></li>
-            <li><a href="/FrontPage">Video</a></li>
-            <li><a href="/webcam">Webcam</a></li>
-        </ul>
-    </header>
-    <!-- Style this -->
-    <div class="container">
-        <div class="container row mt-5">
-            <canvas class="col-lg-6 col" id="myCanvas" width="800" height="600"></canvas>
-             <!-- Style all input -->
-            <div class="col-lg-6 col">
-                <div class="container row">
-                    <div class="row"><h5>Start Line:</h5></div>
-                    <div class="row">
-                        <div class="col-sm-6 col">
-                            <h6>Point 1</h6>
-                            <div class="container">
-                                <label for="slider1">x</label>
-                                <input type="range" name="slider1" id="slider1" class="slider" min="0" max="600" value="300">
-                            </div>
-                            <div class="container">
-                                <label for="slider1">y</label>
-                                <input type="range" name="slider2" id="slider2" class="slider" min="0" max="400" value="100">
-                            </div>
-                        </div>
-                        <div class="col-sm-6 col">
-                            <h6>Point 2</h6>
-                            <div class="container">
-                                <label for="slider3">x</label>
-                                <input type="range" name="slider3" id="slider3" class="slider" min="0" max="600" value="300">
-                            </div>
-                            <div class="container">
-                                <label for="slider4">y</label>
-                                <input type="range" name="slider4"id="slider4" class="slider" min="0" max="400" value="300">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="container row">
-                    <div class="row"><h5>End Line:</h5></div>
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <h6>Point 1</h6>
-                            <div class="container">
-                                <label for="slider5">x</label>
-                                <input type="range" name="slider5" id="slider5" class="slider" min="0" max="600" value="300">
-                            </div>
-                            <div class="container">
-                                <label for="slider6">y</label>
-                                <input type="range" name="slider6" id="slider6" class="slider" min="0" max="400" value="100">
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <h6>Point 2</h6>
-                            <div class="container">
-                                <label for="slider7">x</label>
-                                <input type="range" id="slider7" class="slider" min="0" max="600" value="300">
-                            </div>
-                            <div class="container">
-                                <label for="slider8">y</label>
-                                <input type="range" id="slider8" class="slider" min="0" max="400" value="300">
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <canvas id="myCanvas" width="800" height="600"></canvas>
+    <form id="canvasForm" action="{{ url_for('canvas') }}" method="POST">
+        <input type="hidden" name="imgwidth" id="imgwidth" value="">
+        <input type="hidden" name="imgheight" id="imgheight" value="">
+        <input type="hidden" name="canvaswidth" id="canvaswidth" value="">
+        <input type="hidden" name="canvasheight" id="canvasheight" value="">
+        <div>
+            <h5>Start Line:</h5>
+            <div>
+                <h6>Point 1</h6>
+                <label for="slider1">x</label>
+                <input type="range" name="slider1" id="slider1" class="slider" min="0" max="600" value="300">
+                <label for="slider1">y</label>
+                <input type="range" name="slider2" id="slider2" class="slider" min="0" max="400" value="100">
+            </div>
+            <div>
+                <h6>Point 2</h6>
+                <label for="slider3">x</label>
+                <input type="range" name="slider3" id="slider3" class="slider" min="0" max="600" value="300">
+                <label for="slider4">y</label>
+                <input type="range" name="slider4" id="slider4" class="slider" min="0" max="400" value="300">
             </div>
         </div>
-        <!-- Style this -->
-        <img id="scream" src="..\static\434539768_1114332949713005_5146477429488778362_n.png" style="display: none;">
-    </div>
-    
-
-
-   
+        <div>
+            <h5>End Line:</h5>
+            <div>
+                <h6>Point 1</h6>
+                <label for="slider5">x</label>
+                <input type="range" name="slider5" id="slider5" class="slider" min="0" max="600" value="300">
+                <label for="slider6">y</label>
+                <input type="range" name="slider6" id="slider6" class="slider" min="0" max="400" value="100">
+            </div>
+            <div>
+                <h6>Point 2</h6>
+                <label for="slider7">x</label>
+                <input type="range" name="slider7" id="slider7" class="slider" min="0" max="600" value="300">
+                <label for="slider8">y</label>
+                <input type="range" name="slider8" id="slider8" class="slider" min="0" max="400" value="300">
+            </div>
+        </div>
+        <input type="submit" id="submitBtn" class="btn btn-primary" value="Submit">
+    </form>
+    <img id="scream" src="{{ url_for('oneframe') }}" style="display: none;">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

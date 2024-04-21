@@ -4,7 +4,7 @@ from flask import Flask, render_template, Response, jsonify, request, session
 
 from flask_wtf import FlaskForm
 
-from wtforms import FileField, SubmitField, StringField, DecimalRangeField, IntegerRangeField
+from wtforms import FileField, SubmitField, StringField, DecimalRangeField, IntegerRangeField, IntegerField
 from werkzeug.utils import secure_filename
 from wtforms.validators import InputRequired, NumberRange
 import os
@@ -13,7 +13,7 @@ import cv2
 
 # YOLO_Video is the python file which contains the code for our object detection model
 # Video Detection is the Function which performs Object Detection on Input Video
-from detection import video_detection
+from detection import video_detection, get_one_frame, update_lines
 
 app = Flask(__name__)
 
@@ -50,6 +50,21 @@ def generate_frames_web(path_x):
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
+
+@app.route('/oneframe')
+def oneframe():
+    return Response(generate_one_frame(path_x=session.get('video_path', None)),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+def generate_one_frame(path_x):
+    output_ = get_one_frame(path_x)
+    ref, buffer = cv2.imencode('.jpg', output_)
+    frame = buffer.tobytes()
+    return (b'--frame\r\n'
+            b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/home', methods=['GET', 'POST'])
 def home():
@@ -58,37 +73,85 @@ def home():
 
 
 # Rendering the Webcam Page
-@app.route("/webcam", methods=['GET', 'POST'])
-def webcam():
+@app.route("/live", methods=['GET', 'POST'])
+def live():
     session.clear()
-    return render_template('webcam.html')
+    return render_template('live.html')
 
 
-@app.route('/FrontPage', methods=['GET', 'POST'])
-def front():
-    # Upload File Form: Create an instance for the Upload File Form
+@app.route('/canvas', methods=['GET', 'POST'])
+def canvas():
+    print(request.method)
+    if request.method == 'POST':
+        slider1_value = request.form['slider1']
+        slider2_value = request.form['slider2']
+        slider3_value = request.form['slider3']
+        slider4_value = request.form['slider4']
+        slider5_value = request.form['slider5']
+        slider6_value = request.form['slider6']
+        slider7_value = request.form['slider7']
+        slider8_value = request.form['slider8']
+
+        image_width = request.form['imagewidth']
+        image_height = request.form['imageheight']
+
+        canvas_width = request.form['canvaswidth']
+        canvas_height = request.form['canvasheight']
+
+        
+
+        print('Slider 1 X:', slider1_value)
+        print('Slider 1 Y:', slider2_value)
+        print('Slider 2 X:', slider3_value)
+        print('Slider 2 Y:', slider4_value)
+        print('Slider 3 X:', slider5_value)
+        print('Slider 3 Y:', slider6_value)
+        print('Slider 4 X:', slider7_value)
+        print('Slider 4 Y:', slider8_value)
+
+        s1 = (int(slider1_value), int(slider2_value))
+        s2 = (int(slider3_value), int(slider4_value))
+        e1 = (int(slider5_value), int(slider6_value))
+        e2 = (int(slider7_value), int(slider8_value))
+        # include the values in detection.py for detection. define a function first to add the line values before
+        update_lines(s1, s2, e1, e2)
+
+        # generating the frames
+        # redirect to videoplaying.html
+        return render_template('videoplaying.html')
+
+    return render_template('canvas.html')
+
+
+@app.route('/video', methods=['GET', 'POST'])
+def video():
+    # Upload video
     form = UploadFileForm()
+    # If method == post,
     if form.validate_on_submit():
-        # Our uploaded video file path is saved here
         file = form.file.data
         file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'],
                                secure_filename(file.filename)))  # Then save the file
         # Use session storage to save video file path
         session['video_path'] = os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'],
                                              secure_filename(file.filename))
+
+        # Redirect to canvas with a frame in the picture to draw begin and end line
+        return render_template('canvas.html')
+        # return render_template('video.html', form=form)
     return render_template('video.html', form=form)
 
 
-@app.route('/video')
-def video():
+@app.route('/videoframe')
+def videoframe():
     # return Response(generate_frames(path_x='static/files/bikes.mp4'), mimetype='multipart/x-mixed-replace; boundary=frame')
     return Response(generate_frames(path_x=session.get('video_path', None)),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 # To display the Output Video on Webcam page
-@app.route('/webapp')
-def webapp():
+@app.route('/liveframe')
+def liveframe():
     # return Response(generate_frames(path_x = session.get('video_path', None),conf_=round(float(session.get('conf_', None))/100,2)),mimetype='multipart/x-mixed-replace; boundary=frame')
     return Response(generate_frames_web(path_x=0), mimetype='multipart/x-mixed-replace; boundary=frame')
 

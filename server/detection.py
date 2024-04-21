@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from ultralytics import YOLO
 import cv2
 import math
@@ -22,19 +24,21 @@ conf_threshold = 0.5
 max_cosine_distance = 0.4
 nn_budget = None
 
+start_point1 = (0, 0)
+start_point2 = (0, 0)
+
+
+end_point1 = (0, 0)
+end_point2 = (0, 0)
+
+counter_start: int = 0
+counter_end: int = 0
+
 GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
 
 points = [deque(maxlen=32) for _ in range(1000)]  # list of dequeues to store the points
-counter_A = 0
-counter_B = 0
-counter_C = 0
-start_line_A = (0, 450)
-end_line_A = (480, 450)
-start_line_B = (525, 450)
-end_line_B = (745, 450)
-start_line_C = (895, 450)
-end_line_C = (1165, 450)
+
 
 # Part of newer detection
 model_filename = "config/mars-small128.pb"
@@ -65,10 +69,31 @@ def create_video_writer(video_cap, output_filename):
     return writer
 
 
+def update_lines(s1, s2, e1, e2):
+    global start_point1, start_point2, end_point1, end_point2
+
+    start_point1 = s1
+    start_point2 = s2
+    end_point1 = e1
+    end_point2 = e2
+
+    print("Updated lines: ")
+    print(s1, s2, e1, e2)
+    return
+
+
 def video_detection(path_x):
-    global counter_A
-    global counter_B
-    global counter_C
+    global counter_start
+    global counter_end
+
+    global start_point1
+    global start_point2
+
+    global end_point1
+    global end_point2
+
+    global metric
+    global tracker
     video_capture = path_x
     # Create a Webcam Object
     cap = cv2.VideoCapture(video_capture)
@@ -79,9 +104,7 @@ def video_detection(path_x):
     # out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (frame_width, frame_height))
     out = create_video_writer(cap, "output.mp4")
 
-
-
-    model = YOLO("../weights/yolov8s.pt")
+    model = YOLO("../weights/yolov8m.pt")
     # Commented out. Part of New Detection Code
     # tracker = DeepSort(max_age=50)
 
@@ -100,14 +123,17 @@ def video_detection(path_x):
         success, img = cap.read()
         # if there is no frame, we have reached the end of the video
         if not success:
+            counter_start = 0
+            counter_end = 0
+
+            tracker = Tracker(metric)
             print("End of the video file...")
             break
 
         overlay = img.copy()
         # draw the lines
-        cv2.line(img, start_line_A, end_line_A, (0, 255, 0), 12)
-        cv2.line(img, start_line_B, end_line_B, (255, 0, 0), 12)
-        cv2.line(img, start_line_C, end_line_C, (0, 0, 255), 12)
+        cv2.line(img, start_point1, start_point2, (0, 255, 0), 12)
+        cv2.line(img, end_point1, end_point2, (255, 0, 0), 12)
 
         img = cv2.addWeighted(overlay, 0.5, img, 0.5, 0)
         # *************************************** #
@@ -268,36 +294,36 @@ def video_detection(path_x):
                 cv2.circle(img, (int(last_point_x), int(last_point_y)), 4, (255, 0, 255), -1)
                 # if the y coordinate of the center point is below the line, and the x coordinate is
                 # between the start and end points of the line, and the last point is above the line,
-                # increment the total number of cars crossing the line and remove the center points from the list
-                if center_y > start_line_A[1] > last_point_y and start_line_A[0] < center_x < end_line_A[0]:
-                    counter_A += 1
-
-                    total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
-                    text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
-                    successful_id = insert_traffic_data(class_name, "00:00:00", total_time, "San Jose del Monte Fatima V")
-                    print(successful_id)
-                    points[track_id].clear()
-                elif center_y > start_line_B[1] and start_line_B[0] < center_x < end_line_B[0] and last_point_y < \
-                        start_line_A[1]:
-                    counter_B += 1
-
-                    total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
-                    text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
-                    successful_id = insert_traffic_data(class_name, "00:00:00", total_time,
-                                                        "San Jose del Monte Fatima V")
-                    print(successful_id)
-                    points[track_id].clear()
-                elif center_y > start_line_C[1] and start_line_C[0] < center_x < end_line_C[0] and last_point_y < \
-                        start_line_A[1]:
-                    counter_C += 1
-
-                    total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
-                    text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
-                    successful_id = insert_traffic_data(class_name, "00:00:00", total_time,
-                                                        "San Jose del Monte Fatima V")
-                    print(successful_id)
-                    print(text)
-                    points[track_id].clear()
+                # # increment the total number of cars crossing the line and remove the center points from the list
+                # if center_y > start_line_A[1] > last_point_y and start_line_A[0] < center_x < end_line_A[0]:
+                #     counter_start += 1
+                #
+                #     total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+                #     text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
+                #     successful_id = insert_traffic_data(class_name, "00:00:00", total_time, "San Jose del Monte Fatima V")
+                #     print(successful_id)
+                #     points[track_id].clear()
+                # elif center_y > start_line_B[1] and start_line_B[0] < center_x < end_line_B[0] and last_point_y < \
+                #         start_line_A[1]:
+                #     counter_end += 1
+                #
+                #     total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+                #     text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
+                #     successful_id = insert_traffic_data(class_name, "00:00:00", total_time,
+                #                                         "San Jose del Monte Fatima V")
+                #     print(successful_id)
+                #     points[track_id].clear()
+                # elif center_y > start_line_C[1] and start_line_C[0] < center_x < end_line_C[0] and last_point_y < \
+                #         start_line_A[1]:
+                #     counter_C += 1
+                #
+                #     total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+                #     text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
+                #     successful_id = insert_traffic_data(class_name, "00:00:00", total_time,
+                #                                         "San Jose del Monte Fatima V")
+                #     print(successful_id)
+                #     print(text)
+                #     points[track_id].clear()
         # *************************************** #
         # *           POST PROCESSING           * #
         # *************************************** #
@@ -313,9 +339,9 @@ def video_detection(path_x):
         cv2.putText(img, "A", (10, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
         cv2.putText(img, "B", (530, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
         cv2.putText(img, "C", (910, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        cv2.putText(img, f"{counter_A}", (270, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        cv2.putText(img, f"{counter_B}", (620, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        cv2.putText(img, f"{counter_C}", (1040, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv2.putText(img, f"{counter_start}", (270, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv2.putText(img, f"{counter_end}", (620, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        # cv2.putText(img, f"{counter_C}", (1040, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
         yield img
         out.write(img)
@@ -324,6 +350,23 @@ def video_detection(path_x):
         #     break
 
     out.release()
+
+
+def get_one_frame(path_x):
+    # Open the video file
+    cap = cv2.VideoCapture(path_x)
+
+    # Check if the video file was opened successfully
+    if not cap.isOpened():
+        print("Error: Could not open video file.")
+        return None
+
+    while True:
+        ret, frame = cap.read()
+
+        if ret:
+            cap.release()
+            return frame
 
 
 cv2.destroyAllWindows()

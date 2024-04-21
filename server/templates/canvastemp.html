@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas with Image</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="../static/styles.css">
+    <script defer src="static/scripts/canvas.js"></script>
+</head>
+<body>
+<header>
+    <h1> 📷🤖🚗 Vehicle Detection</h1>
+    <ul class="links">
+        <li><a href="/home">Home</a></li>
+        <li><a href="/video">Video</a></li>
+        <li><a href="/live">Live</a></li>
+    </ul>
+</header>
+<!-- Updated form structure -->
+<div class="container">
+    <div class="container row mt-5">
+        <canvas class="col-lg-6 col" id="myCanvas" width="800" height="600"></canvas>
+        <div class="col-lg-6 col">
+            <div class="container row">
+                <div class="row"><h5>Start Line:</h5></div>
+                <div class="row">
+                    <div class="col-sm-6 col">
+                        <h6>Point 1</h6>
+                        <div class="container">
+                            <label for="slider1">x</label>
+                            <input type="range" name="slider1" id="slider1" class="slider" min="0" max="600" value="300">
+                        </div>
+                        <div class="container">
+                            <label for="slider1">y</label>
+                            <input type="range" name="slider2" id="slider2" class="slider" min="0" max="400" value="100">
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col">
+                        <h6>Point 2</h6>
+                        <div class="container">
+                            <label for="slider3">x</label>
+                            <input type="range" name="slider3" id="slider3" class="slider" min="0" max="600" value="300">
+                        </div>
+                        <div class="container">
+                            <label for="slider4">y</label>
+                            <input type="range" name="slider4" id="slider4" class="slider" min="0" max="400" value="300">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container row">
+                <div class="row"><h5>End Line:</h5></div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <h6>Point 1</h6>
+                        <div class="container">
+                            <label for="slider5">x</label>
+                            <input type="range" name="slider5" id="slider5" class="slider" min="0" max="600" value="300">
+                        </div>
+                        <div class="container">
+                            <label for="slider6">y</label>
+                            <input type="range" name="slider6" id="slider6" class="slider" min="0" max="400" value="100">
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <h6>Point 2</h6>
+                        <div class="container">
+                            <label for="slider7">x</label>
+                            <input type="range" id="slider7" class="slider" min="0" max="600" value="300">
+                        </div>
+                        <div class="container">
+                            <label for="slider8">y</label>
+                            <input type="range" id="slider8" class="slider" min="0" max="400" value="300">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <form id="canvasForm" action="/canvas" method="POST">
+                {{ form.csrf_token }}
+                {{ form.point1_x(id="point1_x", type="hidden") }}
+                {{ form.point1_y(id="point1_y", type="hidden") }}
+                {{ form.point2_x(id="point2_x", type="hidden") }}
+                {{ form.point2_y(id="point2_y", type="hidden") }}
+                {{ form.point3_x(id="point3_x", type="hidden") }}
+                {{ form.point3_y(id="point3_y", type="hidden") }}
+                {{ form.point4_x(id="point4_x", type="hidden") }}
+                {{ form.point4_y(id="point4_y", type="hidden") }}
+                <button type="button" id="submitBtn" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+    <img id="scream" src="../static/434539768_1114332949713005_5146477429488778362_n.png" style="display: none;">
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>
