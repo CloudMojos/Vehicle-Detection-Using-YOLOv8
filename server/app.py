@@ -9,6 +9,8 @@ from werkzeug.utils import secure_filename
 from wtforms.validators import InputRequired, NumberRange
 import os
 
+from math import floor
+
 import cv2
 
 # YOLO_Video is the python file which contains the code for our object detection model
@@ -92,13 +94,31 @@ def canvas():
         slider7_value = request.form['slider7']
         slider8_value = request.form['slider8']
 
-        image_width = request.form['imagewidth']
-        image_height = request.form['imageheight']
+        image_width = request.form['imgwidth']
+        image_height = request.form['imgheight']
 
         canvas_width = request.form['canvaswidth']
         canvas_height = request.form['canvasheight']
 
-        
+        scale_x = float(image_width) / float(canvas_width)
+        scale_y = float(image_height) / float(canvas_height)
+
+        print('Image width: ', image_width)
+        print('Image height: ', image_height)
+        print('Canvas width: ', canvas_width)
+        print('Canvas height: ', canvas_height)
+
+        slider1_value = floor(int(slider1_value) * scale_x)
+        slider2_value = floor(int(slider2_value) * scale_y)
+
+        slider3_value = floor(int(slider3_value) * scale_x)
+        slider4_value = floor(int(slider4_value) * scale_y)
+
+        slider5_value = floor(int(slider5_value) * scale_x)
+        slider6_value = floor(int(slider6_value) * scale_y)
+
+        slider7_value = floor(int(slider7_value) * scale_x)
+        slider8_value = floor(int(slider8_value) * scale_y)
 
         print('Slider 1 X:', slider1_value)
         print('Slider 1 Y:', slider2_value)

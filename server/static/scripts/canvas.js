@@ -20,7 +20,7 @@ window.onload = function() {
     document.getElementById("imgheight").value = imageHeight
     document.getElementById("canvaswidth").value = canvas.width
     document.getElementById("canvasheight").value = canvas.height
-    
+
     const point1 = { x: 0, y: 0 };
     const point2 = { x: 0, y: 0 };
     const point3 = { x: 0, y: 0 };
@@ -35,15 +35,15 @@ window.onload = function() {
 
     function updatePoints() {
         
-        point1.x = parseInt(slider1.value) * scaleX; // Scale x-coordinate
-        point1.y = parseInt(slider2.value) * scaleY; // Scale y-coordinate
-        point2.x = parseInt(slider3.value) * scaleX; // Scale x-coordinate
-        point2.y = parseInt(slider4.value) * scaleY; // Scale y-coordinate
+        point1.x = parseInt(slider1.value); // Scale x-coordinate
+        point1.y = parseInt(slider2.value); // Scale y-coordinate
+        point2.x = parseInt(slider3.value); // Scale x-coordinate
+        point2.y = parseInt(slider4.value); // Scale y-coordinate
 
-        point3.x = parseInt(slider5.value) * scaleX; // Scale x-coordinate
-        point3.y = parseInt(slider6.value) * scaleY; // Scale y-coordinate
-        point4.x = parseInt(slider7.value) * scaleX; // Scale x-coordinate
-        point4.y = parseInt(slider8.value) * scaleY; // Scale y-coordinate
+        point3.x = parseInt(slider5.value); // Scale x-coordinate
+        point3.y = parseInt(slider6.value); // Scale y-coordinate
+        point4.x = parseInt(slider7.value); // Scale x-coordinate
+        point4.y = parseInt(slider8.value); // Scale y-coordinate
 
         // Redraw the canvas with updated points
         redrawCanvas();

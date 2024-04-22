@@ -132,8 +132,8 @@ def video_detection(path_x):
 
         overlay = img.copy()
         # draw the lines
-        cv2.line(img, start_point1, start_point2, (0, 255, 0), 12)
-        cv2.line(img, end_point1, end_point2, (255, 0, 0), 12)
+        cv2.line(img, start_point1, start_point2, (255, 0, 0), 12)
+        cv2.line(img, end_point1, end_point2, (0, 255, 0), 12)
 
         img = cv2.addWeighted(overlay, 0.5, img, 0.5, 0)
         # *************************************** #
@@ -295,24 +295,27 @@ def video_detection(path_x):
                 # if the y coordinate of the center point is below the line, and the x coordinate is
                 # between the start and end points of the line, and the last point is above the line,
                 # # increment the total number of cars crossing the line and remove the center points from the list
-                # if center_y > start_line_A[1] > last_point_y and start_line_A[0] < center_x < end_line_A[0]:
-                #     counter_start += 1
-                #
-                #     total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
-                #     text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
-                #     successful_id = insert_traffic_data(class_name, "00:00:00", total_time, "San Jose del Monte Fatima V")
-                #     print(successful_id)
-                #     points[track_id].clear()
-                # elif center_y > start_line_B[1] and start_line_B[0] < center_x < end_line_B[0] and last_point_y < \
-                #         start_line_A[1]:
-                #     counter_end += 1
-                #
-                #     total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
-                #     text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
-                #     successful_id = insert_traffic_data(class_name, "00:00:00", total_time,
-                #                                         "San Jose del Monte Fatima V")
-                #     print(successful_id)
-                #     points[track_id].clear()
+
+                if center_y > start_point1[1] > last_point_y and start_point1[0] < center_x < start_point2[0]:
+                    counter_start += 1
+
+                    total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+                    text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
+                    successful_id = insert_traffic_data(class_name, "00:00:00", total_time, "San Jose del Monte Fatima V")
+                    print(successful_id)
+                    points[track_id].clear()
+
+                if center_y > end_point1[1] > last_point_y and end_point1[0] < center_x < end_point2[0]:
+                    counter_end += 1
+
+                    total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+                    text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
+
+                    print("Passed into the end line")
+
+                    points[track_id].clear()
+
+
                 # elif center_y > start_line_C[1] and start_line_C[0] < center_x < end_line_C[0] and last_point_y < \
                 #         start_line_A[1]:
                 #     counter_C += 1
