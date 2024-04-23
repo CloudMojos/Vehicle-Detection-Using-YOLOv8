@@ -34,6 +34,9 @@ end_point2 = (0, 0)
 counter_start: int = 0
 counter_end: int = 0
 
+date = datetime.now()
+time_start = date.strftime("%H:%M:%S")
+
 GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
 
@@ -79,6 +82,13 @@ def update_lines(s1, s2, e1, e2):
 
     print("Updated lines: ")
     print(s1, s2, e1, e2)
+    return
+
+def update_datetime(d, t):
+    global date, time_start
+
+    date = d
+    time_start = t
     return
 
 
@@ -298,15 +308,25 @@ def video_detection(path_x):
 
                 if center_y > start_point1[1] > last_point_y and start_point1[0] < center_x < start_point2[0]:
                     counter_start += 1
+                    ## Add it to an array of ins
+                    ## Element include dict containing all parameters exlcuding out time
 
-                    total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
-                    text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
-                    successful_id = insert_traffic_data(class_name, "00:00:00", total_time, "San Jose del Monte Fatima V")
-                    print(successful_id)
+
+                    # # In seconds
+                    # time_passed = (cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0)
+                    # total_time = time_passed
+                    # text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
+                    #
+                    # successful_id = insert_traffic_data(class_name, "00:00:00", total_time, "San Jose del Monte Fatima V")
+                    # print(successful_id)
                     points[track_id].clear()
 
                 if center_y > end_point1[1] > last_point_y and end_point1[0] < center_x < end_point2[0]:
                     counter_end += 1
+
+                    ## Compute the end time
+                    ## Add it to the db
+                    ## Remove it in the array
 
                     total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
                     text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"

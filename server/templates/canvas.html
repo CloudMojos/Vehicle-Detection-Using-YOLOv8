@@ -9,48 +9,89 @@
     <script defer src="static/scripts/canvas.js"></script>
 </head>
 <body>
-    <canvas id="myCanvas" width="800" height="600"></canvas>
-    <form id="canvasForm" action="{{ url_for('canvas') }}" method="POST">
-        <input type="hidden" name="imgwidth" id="imgwidth" value="">
-        <input type="hidden" name="imgheight" id="imgheight" value="">
-        <input type="hidden" name="canvaswidth" id="canvaswidth" value="">
-        <input type="hidden" name="canvasheight" id="canvasheight" value="">
-        <div>
-            <h5>Start Line:</h5>
-            <div>
-                <h6>Point 1</h6>
-                <label for="slider1">x</label>
-                <input type="range" name="slider1" id="slider1" class="slider" min="0" max="600" value="300">
-                <label for="slider1">y</label>
-                <input type="range" name="slider2" id="slider2" class="slider" min="0" max="400" value="100">
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">📷🤖🚗 Vehicle Detection</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/home">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/video">Video</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/live">Live</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
-            <div>
-                <h6>Point 2</h6>
-                <label for="slider3">x</label>
-                <input type="range" name="slider3" id="slider3" class="slider" min="0" max="600" value="300">
-                <label for="slider4">y</label>
-                <input type="range" name="slider4" id="slider4" class="slider" min="0" max="400" value="300">
+        </nav>
+    </header>
+    <div class="container m-0 mt-3">
+        <div class="row">
+            <div class="col">
+                <canvas id="myCanvas" width="800" height="600"></canvas>
+            </div>
+            <div class="col">
+                <form id="canvasForm" action="{{ url_for('canvas') }}" method="POST">
+                    <input type="hidden" name="imgwidth" id="imgwidth" value="">
+                    <input type="hidden" name="imgheight" id="imgheight" value="">
+                    <input type="hidden" name="canvaswidth" id="canvaswidth" value="">
+                    <input type="hidden" name="canvasheight" id="canvasheight" value="">
+
+
+                    <label for="date" class="form-label">Date</label>
+                    <input type="date" name="date" id="date" class="form-control">
+
+                    <label for="time" class="form-label">Time</label>
+                    <input type="time" name="time" id="time" class="form-control">
+                    <div>
+                        <h5>Start Line:</h5>
+                        <div>
+                            <h6>Point 1</h6>
+                            <label for="slider1">x</label>
+                            <input type="range" name="slider1" id="slider1" class="slider" min="0" max="800" value="300">
+                            <label for="slider1">y</label>
+                            <input type="range" name="slider2" id="slider2" class="slider" min="0" max="600" value="100">
+                        </div>
+                        <div>
+                            <h6>Point 2</h6>
+                            <label for="slider3">x</label>
+                            <input type="range" name="slider3" id="slider3" class="slider" min="0" max="800" value="300">
+                            <label for="slider4">y</label>
+                            <input type="range" name="slider4" id="slider4" class="slider" min="0" max="600" value="300">
+                        </div>
+                    </div>
+                    <div>
+                        <h5>End Line:</h5>
+                        <div>
+                            <h6>Point 1</h6>
+                            <label for="slider5">x</label>
+                            <input type="range" name="slider5" id="slider5" class="slider" min="0" max="800" value="300">
+                            <label for="slider6">y</label>
+                            <input type="range" name="slider6" id="slider6" class="slider" min="0" max="600" value="100">
+                        </div>
+                        <div>
+                            <h6>Point 2</h6>
+                            <label for="slider7">x</label>
+                            <input type="range" name="slider7" id="slider7" class="slider" min="0" max="800" value="300">
+                            <label for="slider8">y</label>
+                            <input type="range" name="slider8" id="slider8" class="slider" min="0" max="600" value="300">
+                        </div>
+                    </div>
+                    <label for="address" class="form-label">Address</label>
+                    <input type="text" name="address" id="address" class="form-control">
+                    <input type="submit" id="submitBtn" class="btn btn-primary mt-3" value="Submit">
+                </form>
             </div>
         </div>
-        <div>
-            <h5>End Line:</h5>
-            <div>
-                <h6>Point 1</h6>
-                <label for="slider5">x</label>
-                <input type="range" name="slider5" id="slider5" class="slider" min="0" max="600" value="300">
-                <label for="slider6">y</label>
-                <input type="range" name="slider6" id="slider6" class="slider" min="0" max="400" value="100">
-            </div>
-            <div>
-                <h6>Point 2</h6>
-                <label for="slider7">x</label>
-                <input type="range" name="slider7" id="slider7" class="slider" min="0" max="600" value="300">
-                <label for="slider8">y</label>
-                <input type="range" name="slider8" id="slider8" class="slider" min="0" max="400" value="300">
-            </div>
-        </div>
-        <input type="submit" id="submitBtn" class="btn btn-primary" value="Submit">
-    </form>
+    </div>
+
     <img id="scream" src="{{ url_for('oneframe') }}" style="display: none;">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>

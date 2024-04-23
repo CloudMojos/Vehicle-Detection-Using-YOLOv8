@@ -15,14 +15,18 @@ connection_string = ("mongodb+srv://tofuhermit:vTYsOqcDDjuvSMlD@cluster0.hd8bmua
 # print(db.list_collection_names())
 
 
-def insert_traffic_data(class_type, in_time, out_time, full_address, vehicle_type="public"):
+def insert_traffic_data(class_type, vehicle_type, date, in_time, out_time, full_address):
     return
 #     if class_type == "car" or class_type == "van":
 #         vehicle_type = "private"
+#     else:
+#         vehicle_type = "public"
+
 #     collection = db.trafficinstances
 #     traffic_data = {
 #         "class": class_type,
 #         "type": vehicle_type,
+#         "date": date,
 #         "in_time": in_time,
 #         "out_time": out_time,
 #         "full_address": full_address
