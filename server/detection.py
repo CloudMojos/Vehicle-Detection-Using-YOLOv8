@@ -34,8 +34,9 @@ end_point2 = (0, 0)
 counter_start: int = 0
 counter_end: int = 0
 
-date = datetime.now()
-time_start = date.strftime("%H:%M:%S")
+date = ''
+time_start = ''
+address = ''
 
 GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
@@ -84,11 +85,21 @@ def update_lines(s1, s2, e1, e2):
     print(s1, s2, e1, e2)
     return
 
+
 def update_datetime(d, t):
     global date, time_start
 
-    date = d
-    time_start = t
+    date = str(d)
+    time_start = str(t)
+    print(date)
+    print(time_start)
+    return
+
+
+def update_address(a):
+    global address
+
+    address = str(a)
     return
 
 
@@ -104,7 +115,12 @@ def video_detection(path_x):
 
     global metric
     global tracker
+
+    global date
+    global time_start
+    global address
     video_capture = path_x
+    vehicles_in = {}
     # Create a Webcam Object
     cap = cv2.VideoCapture(video_capture)
     # if (path_x == 0):
@@ -113,6 +129,7 @@ def video_detection(path_x):
     frame_height = int(cap.get(4))
     # out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (frame_width, frame_height))
     out = create_video_writer(cap, "output.mp4")
+
 
     model = YOLO("../weights/yolov8m.pt")
     # Commented out. Part of New Detection Code
@@ -133,10 +150,6 @@ def video_detection(path_x):
         success, img = cap.read()
         # if there is no frame, we have reached the end of the video
         if not success:
-            counter_start = 0
-            counter_end = 0
-
-            tracker = Tracker(metric)
             print("End of the video file...")
             break
 
@@ -316,7 +329,19 @@ def video_detection(path_x):
                     # time_passed = (cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0)
                     # total_time = time_passed
                     # text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
-                    #
+                    # vehicles_in[track_id]["start"] = start
+                    time_since_start = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+
+                    # print("Time since start", time_since_start)
+                    # print("Type of TSS,", type(time_since_start))
+
+                    total_time = add_time(time_start, time_since_start)
+                    text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {time_start}, Total Time: {total_time}"
+                    print(text)
+                    vehicles_in[track_id] = {}
+                    vehicles_in[track_id]['start'] = total_time
+                    print("Added to the INS", vehicles_in[track_id])
+
                     # successful_id = insert_traffic_data(class_name, "00:00:00", total_time, "San Jose del Monte Fatima V")
                     # print(successful_id)
                     points[track_id].clear()
@@ -328,11 +353,34 @@ def video_detection(path_x):
                     ## Add it to the db
                     ## Remove it in the array
 
-                    total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
-                    text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
+                    time_since_start = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+                    # print("Time since start", time_since_start)
+                    # print("Type of TSS,", type(time_since_start))
 
+                    total_time = add_time(time_start, time_since_start)
+
+                    try:
+                        time_in = vehicles_in[track_id]['start']
+                    except KeyError:
+                        time_in = None
+
+                    time_out = total_time
+
+                    text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {time_in}, End Time: {time_out}"
+                    print(text)
+                    # insert_traffic_data(class_type, date, in_time, out_time, full_address):
+                    success_id = insert_traffic_data(class_name, date, time_in, time_out, address)
+                    print("Success ID inserted: ", success_id)
                     print("Passed into the end line")
 
+                    try:
+                        vehicles_in.pop(track_id)
+                    except KeyError:
+                        # Handle the case when the key doesn't exist
+                        # For instance, you can log a message or take other appropriate actions
+                        print(f"Key {track_id} not found in vehicles_in. Skipping removal.")
+
+                    print("Vehicle Ins, ", vehicles_in)
                     points[track_id].clear()
 
 
@@ -372,6 +420,10 @@ def video_detection(path_x):
         # if cv2.waitKey(1) & 0xFF==ord('1'):
         #     break
 
+    counter_start = 0
+    counter_end = 0
+
+    tracker = Tracker(metric)
     out.release()
 
 
@@ -390,6 +442,43 @@ def get_one_frame(path_x):
         if ret:
             cap.release()
             return frame
+
+
+def add_time(t: str, seconds_to_add: float) -> str:
+    """
+    Adds seconds to a given time in hh:mm format.
+    Args:
+        time (str): Time in hh:mm format.
+        seconds_to_add (float): Seconds to add.
+    Returns:
+        str: New time in hh:mm:ss format.
+    """
+    # Parse the input time
+    hours, minutes = map(int, t.split(':'))
+
+    # Calculate the total seconds
+    total_seconds = hours * 3600 + minutes * 60 + seconds_to_add
+
+    # Calculate new hours, minutes, and seconds
+    new_hours, remainder = divmod(total_seconds, 3600)
+    new_minutes, new_seconds = divmod(remainder, 60)
+
+    new_hours = int(new_hours)
+    new_minutes = int(new_minutes)
+    new_seconds = float(new_seconds)
+
+    # Convert seconds to integer part and decimal part
+    seconds_integer = int(new_seconds)
+    seconds_decimal = int((new_seconds - seconds_integer) * 100)  # Extract two decimal places
+    # Format the result
+    new_time = f"{new_hours:02d}:{new_minutes:02d}:{seconds_integer:02d}.{seconds_decimal:02d}"
+    return new_time
+
+# # Example usage:
+# time_input = "12:47"
+# seconds_to_add_input = 3660.23
+# new_time_result = add_time(time_input, seconds_to_add_input)
+# print(f"New time: {new_time_result}")
 
 
 cv2.destroyAllWindows()

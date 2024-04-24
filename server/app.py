@@ -15,7 +15,7 @@ import cv2
 
 # YOLO_Video is the python file which contains the code for our object detection model
 # Video Detection is the Function which performs Object Detection on Input Video
-from detection import video_detection, get_one_frame, update_lines, update_datetime
+from detection import video_detection, get_one_frame, update_lines, update_datetime, update_address
 
 app = Flask(__name__)
 
@@ -102,9 +102,7 @@ def canvas():
 
         date = request.form['date']
         time = request.form['time']
-
-        print("Date", date)
-        print("Time", time)
+        address = request.form['address']
 
         scale_x = float(image_width) / float(canvas_width)
         scale_y = float(image_height) / float(canvas_height)
@@ -142,7 +140,7 @@ def canvas():
         # include the values in detection.py for detection. define a function first to add the line values before
         update_lines(s1, s2, e1, e2)
         update_datetime(date, time)
-
+        update_address(address)
         # generating the frames
         # redirect to videoplaying.html
         return render_template('videoplaying.html')
