@@ -10,12 +10,16 @@ from wtforms.validators import InputRequired, NumberRange
 import os
 
 from math import floor
+from bson.json_util import dumps
 
+
+import json
 import cv2
 
 # YOLO_Video is the python file which contains the code for our object detection model
 # Video Detection is the Function which performs Object Detection on Input Video
 from detection import video_detection, get_one_frame, update_lines, update_datetime, update_address
+from db_connection import find_traffic_data
 
 app = Flask(__name__)
 
@@ -52,7 +56,6 @@ def generate_frames_web(path_x):
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
-
 @app.route('/oneframe')
 def oneframe():
     return Response(generate_one_frame(path_x=session.get('video_path', None)),
@@ -72,6 +75,11 @@ def generate_one_frame(path_x):
 def home():
     session.clear()
     return render_template('index.html')
+
+
+@app.route('/show')
+def show_all():
+    return
 
 
 # Rendering the Webcam Page
@@ -179,6 +187,13 @@ def videoframe():
 def liveframe():
     # return Response(generate_frames(path_x = session.get('video_path', None),conf_=round(float(session.get('conf_', None))/100,2)),mimetype='multipart/x-mixed-replace; boundary=frame')
     return Response(generate_frames_web(path_x=0), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/find')
+def find():
+    documents = list(find_traffic_data([]))
+    json_data = dumps(documents, indent=2)
+    return Response(json_data, mimetype='application/json')
 
 
 if __name__ == "__main__":

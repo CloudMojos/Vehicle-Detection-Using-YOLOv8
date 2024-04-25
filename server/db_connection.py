@@ -30,7 +30,18 @@ def insert_traffic_data(class_type, date, in_time, out_time, full_address):
         "out_time": out_time,
         "full_address": full_address
     }
+    if traffic_data['in_time'] == None:
+        traffic_data['in_time'] = traffic_data['out_time']
     inserted_id = collection.insert_one(traffic_data).inserted_id
     return inserted_id
 
+
+collection = db.trafficinstances
+
+
+def find_traffic_data(args):
+    return collection.find()
+
+
+print(list(collection.find()))
 # print(insert_traffic_data("Car", "PUV", "00:00:00", "00:01:32", "San Jose del Monte"))
