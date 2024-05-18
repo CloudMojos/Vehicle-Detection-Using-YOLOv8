@@ -51,9 +51,11 @@ metric = nn_matching.NearestNeighborDistanceMetric(
     "cosine", max_cosine_distance, nn_budget)
 tracker = Tracker(metric)
 # load the COCO class labels the YOLO model was trained on
-classes_path = "config/coco.names"
-with open(classes_path, "r") as f:
-    class_names = f.read().strip().split("\n")
+# classes_path = "config/coco.names"
+# with open(classes_path, "r") as f:
+#     class_names = f.read().strip().split("\n")
+
+class_names = ['Bicycle', 'Bus', 'Car', 'Jeep', 'Motorcycle', 'Tricycle', 'Truck', 'Van']
 # create a list of random colors to represent each class
 np.random.seed(42)  # to get the same colors
 colors = np.random.randint(0, 255, size=(len(class_names), 3))  # (80, 3)
@@ -131,7 +133,7 @@ def video_detection(path_x):
     out = create_video_writer(cap, "output.mp4")
 
 
-    model = YOLO("../weights/yolov8m.pt")
+    model = YOLO("../weights/yolov8n.pt")
     # Commented out. Part of New Detection Code
     # tracker = DeepSort(max_age=50)
 
