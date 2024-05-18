@@ -1,3 +1,5 @@
+- What is [requirements.txt](https://www.freecodecamp.org/news/python-requirementstxt-explained/)
+- I updated the `requirements.txt` using `pipreqs`. 
 ### Installation guide.
 1. `cd server`
 2. `pip install` (hopefully this works)
