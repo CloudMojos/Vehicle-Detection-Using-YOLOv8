@@ -93,10 +93,14 @@ def live():
 def canvas():
     print(request.method)
     if request.method == 'POST':
-        slider1_value = request.form['slider1']
-        slider2_value = request.form['slider2']
-        slider3_value = request.form['slider3']
-        slider4_value = request.form['slider4']
+        # slider1_value = request.form['slider1']
+        # slider2_value = request.form['slider2']
+        # slider3_value = request.form['slider3']
+        # slider4_value = request.form['slider4']
+        slider1_value = 0
+        slider2_value = 0
+        slider3_value = 0
+        slider4_value = 0
         slider5_value = request.form['slider5']
         slider6_value = request.form['slider6']
         slider7_value = request.form['slider7']

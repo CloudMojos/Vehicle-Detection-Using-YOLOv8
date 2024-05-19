@@ -24,14 +24,10 @@ conf_threshold = 0.5
 max_cosine_distance = 0.4
 nn_budget = None
 
-start_point1 = (0, 0)
-start_point2 = (0, 0)
-
-
 end_point1 = (0, 0)
 end_point2 = (0, 0)
 
-counter_start: int = 0
+# counter_start: int = 0
 counter_end: int = 0
 
 date = ''
@@ -42,7 +38,7 @@ GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
 
 points = [deque(maxlen=32) for _ in range(1000)]  # list of dequeues to store the points
-
+counted_ids = set()  # Set to store counted track IDs
 
 # Part of newer detection
 model_filename = "config/mars-small128.pb"
@@ -51,11 +47,11 @@ metric = nn_matching.NearestNeighborDistanceMetric(
     "cosine", max_cosine_distance, nn_budget)
 tracker = Tracker(metric)
 # load the COCO class labels the YOLO model was trained on
-# classes_path = "config/coco.names"
-# with open(classes_path, "r") as f:
-#     class_names = f.read().strip().split("\n")
+classes_path = "config/coco.names"
+with open(classes_path, "r") as f:
+    class_names = f.read().strip().split("\n")
 
-class_names = ['Bicycle', 'Bus', 'Car', 'Jeep', 'Motorcycle', 'Tricycle', 'Truck', 'Van']
+# class_names = ['Bicycle', 'Bus', 'Car', 'Jeep', 'Motorcycle', 'Tricycle', 'Truck', 'Van']
 # create a list of random colors to represent each class
 np.random.seed(42)  # to get the same colors
 colors = np.random.randint(0, 255, size=(len(class_names), 3))  # (80, 3)
@@ -131,7 +127,6 @@ def video_detection(path_x):
     frame_height = int(cap.get(4))
     # out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (frame_width, frame_height))
     out = create_video_writer(cap, "output.mp4")
-
 
     model = YOLO("../weights/yolov8n.pt")
     # Commented out. Part of New Detection Code
@@ -320,83 +315,22 @@ def video_detection(path_x):
                 # if the y coordinate of the center point is below the line, and the x coordinate is
                 # between the start and end points of the line, and the last point is above the line,
                 # # increment the total number of cars crossing the line and remove the center points from the list
-
-                if center_y > start_point1[1] > last_point_y and start_point1[0] < center_x < start_point2[0]:
-                    counter_start += 1
-                    ## Add it to an array of ins
-                    ## Element include dict containing all parameters exlcuding out time
-
-
-                    # # In seconds
-                    # time_passed = (cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0)
-                    # total_time = time_passed
-                    # text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
-                    # vehicles_in[track_id]["start"] = start
-                    time_since_start = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
-
-                    # print("Time since start", time_since_start)
-                    # print("Type of TSS,", type(time_since_start))
-
-                    total_time = add_time(time_start, time_since_start)
-                    text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {time_start}, Total Time: {total_time}"
-                    print(text)
-                    vehicles_in[track_id] = {}
-                    vehicles_in[track_id]['start'] = total_time
-                    print("Added to the INS", vehicles_in[track_id])
-
-                    # successful_id = insert_traffic_data(class_name, "00:00:00", total_time, "San Jose del Monte Fatima V")
-                    # print(successful_id)
-                    points[track_id].clear()
-
+                # if track_id not in counted_ids:
                 if center_y > end_point1[1] > last_point_y and end_point1[0] < center_x < end_point2[0]:
-                    counter_end += 1
+                    if (center_y > end_point1[1] > last_point_y or center_y < end_point1[1] < last_point_y) and \
+                            end_point1[0] < center_x < end_point2[0]:
+                        counter_end += 1
+                        time_since_start = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+                        total_time = add_time(time_start, time_since_start)
+                        time_in = total_time
+                        time_out = total_time
+                        text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {time_in}, End Time: {time_out}"
+                        print(text)
+                        success_id = insert_traffic_data(class_name, date, time_in, time_out, address)
+                        print("Success ID inserted: ", success_id)
+                        counted_ids.add(track_id)
+                        points[track_id].clear()
 
-                    ## Compute the end time
-                    ## Add it to the db
-                    ## Remove it in the array
-
-                    time_since_start = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
-                    # print("Time since start", time_since_start)
-                    # print("Type of TSS,", type(time_since_start))
-
-                    total_time = add_time(time_start, time_since_start)
-
-                    try:
-                        time_in = vehicles_in[track_id]['start']
-                    except KeyError:
-                        time_in = None
-
-                    time_out = total_time
-
-                    text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {time_in}, End Time: {time_out}"
-                    print(text)
-                    # insert_traffic_data(class_type, date, in_time, out_time, full_address):
-                    success_id = insert_traffic_data(class_name, date, time_in, time_out, address)
-                    print("Success ID inserted: ", success_id)
-                    print("Passed into the end line")
-
-                    try:
-                        vehicles_in.pop(track_id)
-                    except KeyError:
-                        # Handle the case when the key doesn't exist
-                        # For instance, you can log a message or take other appropriate actions
-                        print(f"Key {track_id} not found in vehicles_in. Skipping removal.")
-
-                    print("Vehicle Ins, ", vehicles_in)
-                    points[track_id].clear()
-
-
-                # elif center_y > start_line_C[1] and start_line_C[0] < center_x < end_line_C[0] and last_point_y < \
-                #         start_line_A[1]:
-                #     counter_C += 1
-                #
-                #     total_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
-                #     text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {start}, Total Time: {total_time}"
-                #     successful_id = insert_traffic_data(class_name, "00:00:00", total_time,
-                #                                         "San Jose del Monte Fatima V")
-                #     print(successful_id)
-                #     print(text)
-                #     points[track_id].clear()
         # *************************************** #
         # *           POST PROCESSING           * #
         # *************************************** #
@@ -408,13 +342,12 @@ def video_detection(path_x):
         cv2.putText(img, fps, (50, 50),
                     cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 8)
 
+        endx = int((end_point1[0] + end_point2[0]) / 2)
+        endy = int((end_point1[1] + end_point2[1]) / 2)
+
         # draw the total number of vehicles passing the lines
-        cv2.putText(img, "A", (10, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        cv2.putText(img, "B", (530, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        cv2.putText(img, "C", (910, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        cv2.putText(img, f"{counter_start}", (270, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        cv2.putText(img, f"{counter_end}", (620, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        # cv2.putText(img, f"{counter_C}", (1040, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv2.putText(img, "Counter", (endx, endy), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv2.putText(img, f"{counter_end}", (endx + 20, endy), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
         yield img
         out.write(img)
