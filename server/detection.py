@@ -333,11 +333,14 @@ def video_detection(path_x):
         # calculate the frame per second and draw it on the frame
         fps = f"FPS: {1 / (end - start).total_seconds():.2f}"
         cv2.putText(img, fps, (50, 50),
-                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 8)
+                    cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 8)
+
+        endx = int((end_point1[0] + end_point2[0]) / 2)
+        endy = int((end_point1[1] + end_point2[1]) / 2)
 
         # draw the total number of vehicles passing the lines
-        cv2.putText(img, "A", (10, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        cv2.putText(img, f"{counter_end}", (620, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv2.putText(img, "A", (end_point1[0], endy), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv2.putText(img, f"{counter_end}", (endx, endy), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
         # cv2.putText(img, f"{counter_C}", (1040, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
         yield img
