@@ -9,90 +9,73 @@
     <script defer src="static/scripts/canvas.js"></script>
 </head>
 <body>
-<header>
-    <h1> 📷🤖🚗 Vehicle Detection</h1>
-    <ul class="links">
-        <li><a href="/home">Home</a></li>
-        <li><a href="/video">Video</a></li>
-        <li><a href="/live">Live</a></li>
-    </ul>
-</header>
-<!-- Updated form structure -->
-<div class="container">
-    <div class="container row mt-5">
-        <canvas class="col-lg-6 col" id="myCanvas" width="800" height="600"></canvas>
-        <div class="col-lg-6 col">
-            <div class="container row">
-                <div class="row"><h5>Start Line:</h5></div>
-                <div class="row">
-                    <div class="col-sm-6 col">
-                        <h6>Point 1</h6>
-                        <div class="container">
-                            <label for="slider1">x</label>
-                            <input type="range" name="slider1" id="slider1" class="slider" min="0" max="600" value="300">
-                        </div>
-                        <div class="container">
-                            <label for="slider1">y</label>
-                            <input type="range" name="slider2" id="slider2" class="slider" min="0" max="400" value="100">
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col">
-                        <h6>Point 2</h6>
-                        <div class="container">
-                            <label for="slider3">x</label>
-                            <input type="range" name="slider3" id="slider3" class="slider" min="0" max="600" value="300">
-                        </div>
-                        <div class="container">
-                            <label for="slider4">y</label>
-                            <input type="range" name="slider4" id="slider4" class="slider" min="0" max="400" value="300">
-                        </div>
-                    </div>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">📷🤖🚗 Vehicle Detection</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/home">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/video">Video</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/live">Live</a>
+                        </li>
+                    </ul>
                 </div>
             </div>
-            <div class="container row">
-                <div class="row"><h5>End Line:</h5></div>
-                <div class="row">
-                    <div class="col-sm-6">
-                        <h6>Point 1</h6>
-                        <div class="container">
+        </nav>
+    </header>
+    <div class="container m-0 mt-3">
+        <div class="row">
+            <div class="col">
+                <canvas id="myCanvas" width="800" height="600"></canvas>
+            </div>
+            <div class="col">
+                <form id="canvasForm" action="{{ url_for('canvaslive') }}" method="POST">
+                    <input type="hidden" name="imgwidth" id="imgwidth" value="">
+                    <input type="hidden" name="imgheight" id="imgheight" value="">
+                    <input type="hidden" name="canvaswidth" id="canvaswidth" value="">
+                    <input type="hidden" name="canvasheight" id="canvasheight" value="">
+
+
+                    <label for="date" class="form-label">Date</label>
+                    <input type="date" required name="date" id="date" class="form-control">
+
+                    <label for="time" class="form-label">Time</label>
+                    <input type="time" required name="time" id="time" class="form-control">
+                    <div>
+                        <h5>End Line:</h5>
+                        <div>
+                            <h6>Point 1</h6>
                             <label for="slider5">x</label>
-                            <input type="range" name="slider5" id="slider5" class="slider" min="0" max="600" value="300">
-                        </div>
-                        <div class="container">
+                            <input type="range" name="slider5" id="slider5" class="slider" min="0" max="800" value="300">
                             <label for="slider6">y</label>
-                            <input type="range" name="slider6" id="slider6" class="slider" min="0" max="400" value="100">
+                            <input type="range" name="slider6" id="slider6" class="slider" min="0" max="600" value="100">
                         </div>
-                    </div>
-                    <div class="col-sm-6">
-                        <h6>Point 2</h6>
-                        <div class="container">
+                        <div>
+                            <h6>Point 2</h6>
                             <label for="slider7">x</label>
-                            <input type="range" id="slider7" class="slider" min="0" max="600" value="300">
-                        </div>
-                        <div class="container">
+                            <input type="range" name="slider7" id="slider7" class="slider" min="0" max="800" value="300">
                             <label for="slider8">y</label>
-                            <input type="range" id="slider8" class="slider" min="0" max="400" value="300">
+                            <input type="range" name="slider8" id="slider8" class="slider" min="0" max="600" value="300">
                         </div>
                     </div>
-                </div>
+                    <label for="address" class="form-label">Address</label>
+                    <input type="text" name="address" id="address" class="form-control">
+                    <input type="submit" id="submitBtn" class="btn btn-primary mt-3" value="Submit">
+                </form>
             </div>
-            <form id="canvasForm" action="/canvas" method="POST">
-                {{ form.csrf_token }}
-                {{ form.point1_x(id="point1_x", type="hidden") }}
-                {{ form.point1_y(id="point1_y", type="hidden") }}
-                {{ form.point2_x(id="point2_x", type="hidden") }}
-                {{ form.point2_y(id="point2_y", type="hidden") }}
-                {{ form.point3_x(id="point3_x", type="hidden") }}
-                {{ form.point3_y(id="point3_y", type="hidden") }}
-                {{ form.point4_x(id="point4_x", type="hidden") }}
-                {{ form.point4_y(id="point4_y", type="hidden") }}
-                <button type="button" id="submitBtn" class="btn btn-primary">Submit</button>
-            </form>
         </div>
     </div>
-    <img id="scream" src="../static/434539768_1114332949713005_5146477429488778362_n.png" style="display: none;">
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <img id="scream" src="{{ url_for('liveframe') }}" style="display: none;">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

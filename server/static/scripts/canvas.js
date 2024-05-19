@@ -34,12 +34,6 @@ window.onload = function() {
     });
 
     function updatePoints() {
-        
-//        point1.x = parseInt(slider1.value); // Scale x-coordinate
-//        point1.y = parseInt(slider2.value); // Scale y-coordinate
-//        point2.x = parseInt(slider3.value); // Scale x-coordinate
-//        point2.y = parseInt(slider4.value); // Scale y-coordinate
-
         point3.x = parseInt(slider5.value); // Scale x-coordinate
         point3.y = parseInt(slider6.value); // Scale y-coordinate
         point4.x = parseInt(slider7.value); // Scale x-coordinate
@@ -55,12 +49,6 @@ window.onload = function() {
         
         // Draw points and lines using scaled coordinates
         ctx.fillStyle = "red"; // Set point color
-//        // Draw point 1
-//        ctx.fillRect(point1.x - 2.5, point1.y - 2.5, 5, 1);
-//
-//        // Draw point 2
-//        ctx.fillRect(point2.x - 2.5, point2.y - 2.5, 5, 1);
-
 
         // Draw point 3
         ctx.fillRect(point3.x - 2.5, point3.y - 2.5, 5, 1); 
@@ -71,13 +59,6 @@ window.onload = function() {
 
 
         ctx.lineWidth = 5;
-        
-        // Draw lines between points
-//        ctx.beginPath();
-//        ctx.moveTo(point1.x, point1.y);
-//        ctx.lineTo(point2.x, point2.y);
-//        ctx.strokeStyle = "blue";
-//        ctx.stroke();
 
         ctx.beginPath();
         ctx.moveTo(point3.x, point3.y);

@@ -27,7 +27,6 @@ nn_budget = None
 end_point1 = (0, 0)
 end_point2 = (0, 0)
 
-# counter_start: int = 0
 counter_end: int = 0
 
 date = ''
@@ -46,13 +45,14 @@ encoder = gdet.create_box_encoder(model_filename, batch_size=1)
 metric = nn_matching.NearestNeighborDistanceMetric(
     "cosine", max_cosine_distance, nn_budget)
 tracker = Tracker(metric)
-# load the COCO class labels the YOLO model was trained on
+# load the class labels the YOLO model was trained on
 classes_path = "config/coco.names"
+# classes_path = "config/new.txt"
 with open(classes_path, "r") as f:
     class_names = f.read().strip().split("\n")
-
-# class_names = ['Bicycle', 'Bus', 'Car', 'Jeep', 'Motorcycle', 'Tricycle', 'Truck', 'Van']
+# class_names = ['Bicycle', 'Bus', 'Car', 'Jeepney', 'Motorcycle', 'Tricycle', 'Truck', 'Van']
 # create a list of random colors to represent each class
+
 np.random.seed(42)  # to get the same colors
 colors = np.random.randint(0, 255, size=(len(class_names), 3))  # (80, 3)
 
@@ -72,15 +72,13 @@ def create_video_writer(video_cap, output_filename):
 
 
 def update_lines(s1, s2, e1, e2):
-    global start_point1, start_point2, end_point1, end_point2
+    global end_point1, end_point2
 
-    start_point1 = s1
-    start_point2 = s2
     end_point1 = e1
     end_point2 = e2
 
-    print("Updated lines: ")
-    print(s1, s2, e1, e2)
+    print("Updated line: ")
+    print(e1, e2)
     return
 
 
@@ -102,11 +100,7 @@ def update_address(a):
 
 
 def video_detection(path_x):
-    global counter_start
     global counter_end
-
-    global start_point1
-    global start_point2
 
     global end_point1
     global end_point2
@@ -118,7 +112,6 @@ def video_detection(path_x):
     global time_start
     global address
     video_capture = path_x
-    vehicles_in = {}
     # Create a Webcam Object
     cap = cv2.VideoCapture(video_capture)
     # if (path_x == 0):
@@ -128,9 +121,11 @@ def video_detection(path_x):
     # out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (frame_width, frame_height))
     out = create_video_writer(cap, "output.mp4")
 
+
     model = YOLO("../weights/yolov8n.pt")
     # Commented out. Part of New Detection Code
     # tracker = DeepSort(max_age=50)
+
 
     # class_names = ["person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", "truck", "boat",
     # "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep",
@@ -152,7 +147,6 @@ def video_detection(path_x):
 
         overlay = img.copy()
         # draw the lines
-        cv2.line(img, start_point1, start_point2, (255, 0, 0), 12)
         cv2.line(img, end_point1, end_point2, (0, 255, 0), 12)
 
         img = cv2.addWeighted(overlay, 0.5, img, 0.5, 0)
@@ -315,22 +309,21 @@ def video_detection(path_x):
                 # if the y coordinate of the center point is below the line, and the x coordinate is
                 # between the start and end points of the line, and the last point is above the line,
                 # # increment the total number of cars crossing the line and remove the center points from the list
-                # if track_id not in counted_ids:
-                if center_y > end_point1[1] > last_point_y and end_point1[0] < center_x < end_point2[0]:
-                    if (center_y > end_point1[1] > last_point_y or center_y < end_point1[1] < last_point_y) and \
-                            end_point1[0] < center_x < end_point2[0]:
+                if track_id not in counted_ids:
+                    if (end_point1[0] <= center_x <= end_point2[0] or end_point2[0] <= center_x <= end_point1[0]) and \
+                            (end_point1[1] <= center_y <= end_point2[1] or end_point2[1] <= center_y <= end_point1[1]):
                         counter_end += 1
+
                         time_since_start = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
                         total_time = add_time(time_start, time_since_start)
-                        time_in = total_time
                         time_out = total_time
+                        time_in = time_out
                         text = f"Track ID: {track_id}, Class Name: {class_name}, Start Time: {time_in}, End Time: {time_out}"
                         print(text)
+                        counted_ids.add(track_id)
                         success_id = insert_traffic_data(class_name, date, time_in, time_out, address)
                         print("Success ID inserted: ", success_id)
-                        counted_ids.add(track_id)
                         points[track_id].clear()
-
         # *************************************** #
         # *           POST PROCESSING           * #
         # *************************************** #
@@ -342,12 +335,10 @@ def video_detection(path_x):
         cv2.putText(img, fps, (50, 50),
                     cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 8)
 
-        endx = int((end_point1[0] + end_point2[0]) / 2)
-        endy = int((end_point1[1] + end_point2[1]) / 2)
-
         # draw the total number of vehicles passing the lines
-        cv2.putText(img, "Counter", (endx, endy), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        cv2.putText(img, f"{counter_end}", (endx + 20, endy), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv2.putText(img, "A", (10, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv2.putText(img, f"{counter_end}", (620, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        # cv2.putText(img, f"{counter_C}", (1040, 483), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
         yield img
         out.write(img)
@@ -355,7 +346,6 @@ def video_detection(path_x):
         # if cv2.waitKey(1) & 0xFF==ord('1'):
         #     break
 
-    counter_start = 0
     counter_end = 0
 
     tracker = Tracker(metric)

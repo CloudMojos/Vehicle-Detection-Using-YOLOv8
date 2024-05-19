@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, jsonify, request, session
+from flask import Flask, render_template, Response, jsonify, request, session, redirect, url_for
 
 # FlaskForm = used for file input forms
 
@@ -81,14 +81,6 @@ def home():
 def show_all():
     return
 
-
-# Rendering the Webcam Page
-@app.route("/live", methods=['GET', 'POST'])
-def live():
-    session.clear()
-    return render_template('live.html')
-
-
 @app.route('/canvas', methods=['GET', 'POST'])
 def canvas():
     print(request.method)
@@ -156,9 +148,81 @@ def canvas():
         # generating the frames
         # redirect to videoplaying.html
         return render_template('videoplaying.html')
-
     return render_template('canvas.html')
 
+# Rendering the Webcam Page
+@app.route('/live', methods=['GET', 'POST'])
+def live():
+    return redirect(url_for('canvaslive'))
+
+@app.route('/canvaslive', methods=['GET', 'POST'])
+def canvaslive():
+    print(request.method)
+    if request.method == 'POST':
+        # slider1_value = request.form['slider1']
+        # slider2_value = request.form['slider2']
+        # slider3_value = request.form['slider3']
+        # slider4_value = request.form['slider4']
+        slider1_value = 0
+        slider2_value = 0
+        slider3_value = 0
+        slider4_value = 0
+        slider5_value = request.form['slider5']
+        slider6_value = request.form['slider6']
+        slider7_value = request.form['slider7']
+        slider8_value = request.form['slider8']
+
+        image_width = request.form['imgwidth']
+        image_height = request.form['imgheight']
+
+        canvas_width = request.form['canvaswidth']
+        canvas_height = request.form['canvasheight']
+
+        date = request.form['date']
+        time = request.form['time']
+        address = request.form['address']
+
+        scale_x = float(image_width) / float(canvas_width)
+        scale_y = float(image_height) / float(canvas_height)
+
+        print('Image width: ', image_width)
+        print('Image height: ', image_height)
+        print('Canvas width: ', canvas_width)
+        print('Canvas height: ', canvas_height)
+
+        slider1_value = floor(int(slider1_value) * scale_x)
+        slider2_value = floor(int(slider2_value) * scale_y)
+
+        slider3_value = floor(int(slider3_value) * scale_x)
+        slider4_value = floor(int(slider4_value) * scale_y)
+
+        slider5_value = floor(int(slider5_value) * scale_x)
+        slider6_value = floor(int(slider6_value) * scale_y)
+
+        slider7_value = floor(int(slider7_value) * scale_x)
+        slider8_value = floor(int(slider8_value) * scale_y)
+
+        print('Slider 1 X:', slider1_value)
+        print('Slider 1 Y:', slider2_value)
+        print('Slider 2 X:', slider3_value)
+        print('Slider 2 Y:', slider4_value)
+        print('Slider 3 X:', slider5_value)
+        print('Slider 3 Y:', slider6_value)
+        print('Slider 4 X:', slider7_value)
+        print('Slider 4 Y:', slider8_value)
+
+        s1 = (int(slider1_value), int(slider2_value))
+        s2 = (int(slider3_value), int(slider4_value))
+        e1 = (int(slider5_value), int(slider6_value))
+        e2 = (int(slider7_value), int(slider8_value))
+        # include the values in detection.py for detection. define a function first to add the line values before
+        update_lines(s1, s2, e1, e2)
+        update_datetime(date, time)
+        update_address(address)
+        # generating the frames
+        # redirect to videoplaying.html
+        return render_template('live.html')
+    return render_template('canvastemp.html')
 
 @app.route('/video', methods=['GET', 'POST'])
 def video():
