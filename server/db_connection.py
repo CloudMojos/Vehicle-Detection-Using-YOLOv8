@@ -23,8 +23,8 @@ def insert_traffic_data(class_type, date, in_time, out_time, full_address):
 
     collection = db.trafficinstances
     traffic_data = {
-        "class": class_type,
-        "type": vehicle_type,
+        "class": class_type.lower(),
+        "type": vehicle_type.lower(),
         "date": date,
         "in_time": in_time,
         "out_time": out_time,
@@ -39,8 +39,20 @@ def insert_traffic_data(class_type, date, in_time, out_time, full_address):
 collection = db.trafficinstances
 
 
-def find_traffic_data(args):
-    return collection.find()
+def find_traffic_data(query_params):
+    query = {}
+
+    # Example: Handle a range query for a field named 'age'
+    if 'min_age' in query_params and 'max_age' in query_params:
+        query['age'] = {'$gte': int(query_params['min_age']), '$lte': int(query_params['max_age'])}
+        del query_params['min_age']
+        del query_params['max_age']
+
+    # Add remaining query params directly to the query
+    query.update(query_params)
+
+    documents = collection.find(query)
+    return documents
 
 
 print(list(collection.find()))

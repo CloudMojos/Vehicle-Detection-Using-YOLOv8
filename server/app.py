@@ -150,10 +150,12 @@ def canvas():
         return render_template('videoplaying.html')
     return render_template('canvas.html')
 
+
 # Rendering the Webcam Page
 @app.route('/live', methods=['GET', 'POST'])
 def live():
     return redirect(url_for('canvaslive'))
+
 
 @app.route('/canvaslive', methods=['GET', 'POST'])
 def canvaslive():
@@ -224,6 +226,7 @@ def canvaslive():
         return render_template('live.html')
     return render_template('canvastemp.html')
 
+
 @app.route('/video', methods=['GET', 'POST'])
 def video():
     # Upload video
@@ -242,7 +245,6 @@ def video():
         # return render_template('video.html', form=form)
     return render_template('video.html', form=form)
 
-
 @app.route('/videoframe')
 def videoframe():
     # return Response(generate_frames(path_x='static/files/bikes.mp4'), mimetype='multipart/x-mixed-replace; boundary=frame')
@@ -259,7 +261,10 @@ def liveframe():
 
 @app.route('/find')
 def find():
-    documents = list(find_traffic_data([]))
+    query_params = request.args.to_dict()
+
+    documents = list(find_traffic_data(query_params))
+
     json_data = dumps(documents, indent=2)
     return Response(json_data, mimetype='application/json')
 
