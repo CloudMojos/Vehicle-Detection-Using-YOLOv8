@@ -46,11 +46,11 @@ metric = nn_matching.NearestNeighborDistanceMetric(
     "cosine", max_cosine_distance, nn_budget)
 tracker = Tracker(metric)
 # load the class labels the YOLO model was trained on
-classes_path = "config/coco.names"
-# classes_path = "config/new.txt"
-with open(classes_path, "r") as f:
-    class_names = f.read().strip().split("\n")
-# class_names = ['Bicycle', 'Bus', 'Car', 'Jeepney', 'Motorcycle', 'Tricycle', 'Truck', 'Van']
+# classes_path = "config/coco.names"
+# # classes_path = "config/new.txt"
+# with open(classes_path, "r") as f:
+#     class_names = f.read().strip().split("\n")
+class_names = ['Bicycle', 'Bus', 'Car', 'Jeepney', 'Motorcycle', 'Tricycle', 'Truck', 'Van']
 # create a list of random colors to represent each class
 
 np.random.seed(42)  # to get the same colors
@@ -114,15 +114,15 @@ def video_detection(path_x):
     video_capture = path_x
     # Create a Webcam Object
     cap = cv2.VideoCapture(video_capture)
-    # if (path_x == 0):
-    #     cap.open("http://192.168.89.224:8080/video")
+    if (path_x == 0):
+        cap.open("http://192.168.0.82:8080/video")
     frame_width = int(cap.get(3))
     frame_height = int(cap.get(4))
     # out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), 10, (frame_width, frame_height))
     out = create_video_writer(cap, "output.mp4")
 
 
-    model = YOLO("../weights/yolov8n.pt")
+    model = YOLO("../weights/yes.pt")
     # Commented out. Part of New Detection Code
     # tracker = DeepSort(max_age=50)
 
@@ -244,7 +244,7 @@ def video_detection(path_x):
                     bboxes.append([x, y, w, h])
                     confidences.append(confidence)
                     class_ids.append(class_id)
-                    # cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    # # cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
             # # *************************************** #
             # # *               TRACKING              * #
@@ -270,6 +270,7 @@ def video_detection(path_x):
                 bbox = track.to_tlbr()
                 track_id = track.track_id
                 class_name = track.get_class()
+                # conf = round(track.covariance, 2)
                 # convert the bounding box to integers
                 x1, y1, x2, y2 = int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3])
                 # get the color associated with the class name
@@ -278,7 +279,7 @@ def video_detection(path_x):
                 B, G, R = int(color[0]), int(color[1]), int(color[2])
                 # draw the bounding box of the object, the name
                 # of the predicted object, and the track id
-                text = str(track_id) + " - " + class_name
+                text = str(track_id) + " - " + class_name + " "
                 cv2.rectangle(img, (x1, y1), (x2, y2), (B, G, R), 3)
                 cv2.rectangle(img, (x1 - 1, y1 - 20),
                               (x1 + len(text) * 12, y1), (B, G, R), -1)

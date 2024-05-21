@@ -12,6 +12,7 @@ import os
 from math import floor
 from bson.json_util import dumps
 
+from datetime import datetime
 
 import json
 import cv2
@@ -178,8 +179,8 @@ def canvaslive():
         canvas_width = request.form['canvaswidth']
         canvas_height = request.form['canvasheight']
 
-        date = request.form['date']
-        time = request.form['time']
+        date = datetime.today().strftime('%Y-%m-%d')
+        time = datetime.now().strftime("%H:%M")
         address = request.form['address']
 
         scale_x = float(image_width) / float(canvas_width)
