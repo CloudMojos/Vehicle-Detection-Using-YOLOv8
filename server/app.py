@@ -26,7 +26,6 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tofuhermit'
 app.config['UPLOAD_FOLDER'] = 'static/files'
 
-
 # Use FlaskForm to get input video file  from user
 class UploadFileForm(FlaskForm):
     # We store the uploaded video file path in the FileField in the variable file
@@ -34,7 +33,6 @@ class UploadFileForm(FlaskForm):
     # video when prompted to do so
     file = FileField("File", validators=[InputRequired()])
     submit = SubmitField("Run")
-
 
 def generate_frames(path_x=''):
     yolo_output = video_detection(path_x)
