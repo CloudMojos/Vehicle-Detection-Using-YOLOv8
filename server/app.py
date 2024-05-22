@@ -1,7 +1,8 @@
 from flask import Flask, render_template, Response, jsonify, request, session, redirect, url_for
 
 # FlaskForm = used for file input forms
-
+import csv
+from io import StringIO
 from flask_wtf import FlaskForm
 
 from wtforms import FileField, SubmitField, StringField, DecimalRangeField, IntegerRangeField, IntegerField
@@ -79,6 +80,10 @@ def home():
 @app.route('/show')
 def show_all():
     return
+
+@app.route('/explorer')
+def explorer():
+    return render_template('explorer.html')
 
 @app.route('/canvas', methods=['GET', 'POST'])
 def canvas():
@@ -257,7 +262,6 @@ def liveframe():
     # return Response(generate_frames(path_x = session.get('video_path', None),conf_=round(float(session.get('conf_', None))/100,2)),mimetype='multipart/x-mixed-replace; boundary=frame')
     return Response(generate_frames_web(path_x=0), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-
 @app.route('/find')
 def find():
     query_params = request.args.to_dict()
@@ -266,6 +270,31 @@ def find():
 
     json_data = dumps(documents, indent=2)
     return Response(json_data, mimetype='application/json')
+
+@app.route('/export')
+def export():
+    query_params = request.args.to_dict()
+    documents = list(find_traffic_data(query_params))
+
+    # Create a CSV buffer
+    csv_buffer = StringIO()
+
+    headers = documents[-1].keys()
+
+    csv_writer = csv.DictWriter(csv_buffer, fieldnames=headers)
+
+    csv_writer.writeheader()
+
+    for document in documents:
+        csv_writer.writerow(document)
+
+    csv_data = csv_buffer.getvalue()
+
+    response = Response(csv_data, mimetype='text/csv')
+
+    response.headers.set("Content-Disposition", "attachment", filename="traffic_data.csv")
+
+    return response
 
 
 if __name__ == "__main__":

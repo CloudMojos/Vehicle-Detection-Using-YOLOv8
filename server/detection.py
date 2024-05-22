@@ -50,7 +50,7 @@ tracker = Tracker(metric)
 # # classes_path = "config/new.txt"
 # with open(classes_path, "r") as f:
 #     class_names = f.read().strip().split("\n")
-class_names = ['Bicycle', 'Bus', 'Car', 'Jeepney', 'Motorcycle', 'Tricycle', 'Truck', 'Van']
+class_names = ['Bicycle', 'Bus', 'Car', 'Jeepney', 'Motorcycle', 'Tricycle', 'Truck', '-']
 # create a list of random colors to represent each class
 
 np.random.seed(42)  # to get the same colors
@@ -64,7 +64,7 @@ def create_video_writer(video_cap, output_filename):
     fps = int(video_cap.get(cv2.CAP_PROP_FPS))
 
     # initialize the FourCC and a video writer object
-    fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     writer = cv2.VideoWriter(output_filename, fourcc, fps,
                              (frame_width, frame_height))
 

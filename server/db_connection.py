@@ -43,10 +43,9 @@ def find_traffic_data(query_params):
     query = {}
 
     # Example: Handle a range query for a field named 'age'
-    if 'min_age' in query_params and 'max_age' in query_params:
-        query['age'] = {'$gte': int(query_params['min_age']), '$lte': int(query_params['max_age'])}
-        del query_params['min_age']
-        del query_params['max_age']
+    if 'date' in query_params:
+        query['date'] = {'$gte': str(query_params['date'])}
+        del query_params['date']
 
     # Add remaining query params directly to the query
     query.update(query_params)
