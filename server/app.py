@@ -70,8 +70,8 @@ def generate_one_frame(path_x):
             b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
-@app.route('/', methods=['GET', 'POST'])
-@app.route('/home', methods=['GET', 'POST'])
+@app.route('/')
+@app.route('/home')
 def home():
     session.clear()
     return render_template('index.html')
