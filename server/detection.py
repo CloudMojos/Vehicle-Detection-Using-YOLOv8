@@ -122,7 +122,7 @@ def video_detection(path_x):
     out = create_video_writer(cap, "output.mp4")
 
 
-    model = YOLO("../weights/yes.pt")
+    model = YOLO("./weights/yes.pt")
     # Commented out. Part of New Detection Code
     # tracker = DeepSort(max_age=50)
 

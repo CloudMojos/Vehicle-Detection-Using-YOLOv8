@@ -297,5 +297,52 @@ def export():
     return response
 
 
+@app.route('/summary')
+def summary():
+    query_params = request.args.to_dict()
+    documents = list(find_traffic_data(query_params))
+
+    if not documents:
+        return jsonify({"error": "No data found"}), 404
+
+    class_counts = {cls: 0 for cls in ['Bicycle', 'Bus', 'Car', 'Jeepney', 'Motorcycle', 'Tricycle', 'Truck']}
+    total_count = 0
+    date = documents[0]["date"]
+    address = documents[0]["full_address"]
+    start_time = datetime.max
+    end_time = datetime.min
+
+    for doc in documents:
+        vehicle_class = doc.get("class", "")
+        if vehicle_class in class_counts:
+            class_counts[vehicle_class] += 1
+        total_count += 1
+        
+        # Handle invalid time format
+        try:
+            in_time = datetime.strptime(doc["in_time"], "%H:%M:%S.%f")
+            if in_time < start_time:
+                start_time = in_time
+        except ValueError:
+            print(f"Invalid in_time format: {doc['in_time']}")
+        
+        try:
+            out_time = datetime.strptime(doc["out_time"], "%H:%M:%S.%f")
+            if out_time > end_time:
+                end_time = out_time
+        except ValueError:
+            print(f"Invalid out_time format: {doc['out_time']}")
+
+    summary_data = {
+        "Address": address,
+        "Date": date,
+        "Start": start_time.strftime("%H:%M:%S.%f")[:-3] if start_time != datetime.max else "N/A",
+        "End": end_time.strftime("%H:%M:%S.%f")[:-3] if end_time != datetime.min else "N/A",
+        "Class_Total": class_counts,
+        "Sum_Total": total_count
+    }
+
+    return jsonify(summary_data)
+
 if __name__ == "__main__":
     app.run(debug=True)
