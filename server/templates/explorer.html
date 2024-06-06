@@ -51,7 +51,7 @@
         <div class="content">
             <div class="container">
                 <h1>
-                    API Explorer
+                    Explorer
                 </h1>
             </div>
             <div class="container">
@@ -87,7 +87,10 @@
                         <button type="button" class="btn btn-primary" onclick="submitForm('/find')">View JSON</button>
                         <pre><code id="downloadCsvURL"></code></pre>
                         <button type="button" class="btn btn-secondary" onclick="submitForm('/export')">Download CSV</button>
+                        <pre><code id="downloadSummaryReport"></code></pre>
+                        <button type="button" class="btn btn-secondary" onclick="submitForm('/report')">Download Summary Report</button>
                     </div>
+                    
                 </form>
             </div>
         </div>
@@ -109,6 +112,7 @@
 
                 document.getElementById('viewJsonURL').textContent = `${baseURL}/find?${queryString}`;
                 document.getElementById('downloadCsvURL').textContent = `${baseURL}/export?${queryString}`;
+                document.getElementById('downloadSummaryReport').textContent = `${baseURL}/report?${queryString}`;
             }
 
             function submitForm(action) {

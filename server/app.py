@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, jsonify, request, session, redirect, url_for
+from flask import Flask, render_template, Response, jsonify, request, session, redirect, url_for, send_file
 
 # FlaskForm = used for file input forms
 import csv
@@ -9,6 +9,10 @@ from wtforms import FileField, SubmitField, StringField, DecimalRangeField, Inte
 from werkzeug.utils import secure_filename
 from wtforms.validators import InputRequired, NumberRange
 import os
+
+from PIL import Image, ImageDraw, ImageFont
+import requests
+import io
 
 from math import floor
 from bson.json_util import dumps
@@ -238,11 +242,11 @@ def video():
     # If method == post,
     if form.validate_on_submit():
         file = form.file.data
-        file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'],
-                               secure_filename(file.filename)))  # Then save the file
+        file.save(os.path.join(os.path.abspath(os.path.dirname("input.mp4")), app.config['UPLOAD_FOLDER'],
+                               secure_filename("input.mp4")))  # Then save the file
         # Use session storage to save video file path
-        session['video_path'] = os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'],
-                                             secure_filename(file.filename))
+        session['video_path'] = os.path.join(os.path.abspath(os.path.dirname("input.mp4")), app.config['UPLOAD_FOLDER'],
+                                             secure_filename("input.mp4"))
 
         # Redirect to canvas with a frame in the picture to draw begin and end line
         return render_template('canvas.html')
@@ -305,7 +309,7 @@ def summary():
     if not documents:
         return jsonify({"error": "No data found"}), 404
 
-    class_counts = {cls: 0 for cls in ['Bicycle', 'Bus', 'Car', 'Jeepney', 'Motorcycle', 'Tricycle', 'Truck']}
+    class_counts_by_hour = {}
     total_count = 0
     date = documents[0]["date"]
     address = documents[0]["full_address"]
@@ -314,17 +318,21 @@ def summary():
 
     for doc in documents:
         vehicle_class = doc.get("class", "")
-        if vehicle_class in class_counts:
-            class_counts[vehicle_class] += 1
+        hour = doc["out_time"][:2] + ":00"
+        
+        if hour not in class_counts_by_hour:
+            class_counts_by_hour[hour] = {cls: 0 for cls in ['Bicycle', 'Bus', 'Car', 'Jeepney', 'Motorcycle', 'Tricycle', 'Truck']}
+        
+        if vehicle_class in class_counts_by_hour[hour]:
+            class_counts_by_hour[hour][vehicle_class] += 1
         total_count += 1
         
-        # Handle invalid time format
         try:
-            in_time = datetime.strptime(doc["in_time"], "%H:%M:%S.%f")
+            in_time = datetime.strptime(doc["out_time"], "%H:%M:%S.%f")
             if in_time < start_time:
                 start_time = in_time
         except ValueError:
-            print(f"Invalid in_time format: {doc['in_time']}")
+            print(f"Invalid in_time format: {doc['out_time']}")
         
         try:
             out_time = datetime.strptime(doc["out_time"], "%H:%M:%S.%f")
@@ -336,13 +344,101 @@ def summary():
     summary_data = {
         "Address": address,
         "Date": date,
-        "Start": start_time.strftime("%H:%M:%S.%f")[:-3] if start_time != datetime.max else "N/A",
-        "End": end_time.strftime("%H:%M:%S.%f")[:-3] if end_time != datetime.min else "N/A",
-        "Class_Total": class_counts,
-        "Sum_Total": total_count
+        "Totals": class_counts_by_hour,
+        "Time Span": {
+            "Start": start_time.strftime("%H:%M:%S.%f")[:-3] if start_time != datetime.max else "N/A",
+            "End": end_time.strftime("%H:%M:%S.%f")[:-3] if end_time != datetime.min else "N/A"
+        },
+        "Sum Total": total_count
     }
 
     return jsonify(summary_data)
+
+@app.route('/report')
+def report():
+    with app.test_request_context('/summary', query_string=request.args):
+        summary_response = summary()
+        summary_data = summary_response.get_json()
+
+    # Set up image properties
+    vehicle_classes = list(summary_data["Totals"].values())[0].keys()
+    img_width = 700
+    img_height = 200 + 40 * (len(summary_data["Totals"]) + 1)  # Adjust height based on the number of rows + 1 for header
+    background_color = (255, 255, 255)
+    text_color = (0, 0, 0)
+    line_color = (0, 0, 0)
+    title_font_size = 20
+    header_font_size = 16
+    table_font_size = 14
+    header_background_color = (200, 200, 200)
+    row_colors = [(240, 255, 240), (255, 255, 255)]  # Alternating colors: light green and white
+
+    # Create an image
+    image = Image.new("RGB", (img_width, img_height), background_color)
+    draw = ImageDraw.Draw(image)
+
+    # Load fonts
+    try:
+        title_font = ImageFont.truetype("times.ttf", title_font_size)  # Times New Roman
+        header_font = ImageFont.truetype("times.ttf", header_font_size)  # Times New Roman
+        table_font = ImageFont.truetype("times.ttf", table_font_size)  # Times New Roman
+    except IOError:
+        title_font = ImageFont.load_default()
+        header_font = ImageFont.load_default()
+        table_font = ImageFont.load_default()
+
+    # Draw title and headers
+    title = summary_data["Address"]
+    header = f"Date: {summary_data['Date']}\nFrom {summary_data['Time Span']['Start']} to {summary_data['Time Span']['End']}"
+
+    title_bbox = draw.textbbox((0, 0), title, font=title_font)
+    title_width = title_bbox[2] - title_bbox[0]
+    title_height = title_bbox[3] - title_bbox[1]
+
+    header_bbox = draw.textbbox((0, 0), header, font=header_font)
+    header_width = header_bbox[2] - header_bbox[0]
+    header_height = header_bbox[3] - header_bbox[1]
+
+    draw.text(((img_width - title_width) / 2, 20), title, fill=text_color, font=title_font)
+    draw.text(((img_width - header_width) / 2, 60), header, fill=text_color, font=header_font)
+
+    # Draw the table headers
+    table_x = 50
+    table_y = 120
+    col_width = (img_width - 2 * table_x) // (len(vehicle_classes) + 1)  # +1 for the hour column
+    row_height = 40
+
+    # Draw column headers
+    draw.rectangle([table_x, table_y, img_width - table_x, table_y + row_height], fill=header_background_color, outline=line_color, width=2)
+    draw.text((table_x + 10, table_y + 10), "Hour", fill=text_color, font=header_font)
+    for i, vehicle_class in enumerate(vehicle_classes):
+        draw.text((table_x + (i + 1) * col_width + 10, table_y + 10), vehicle_class, fill=text_color, font=header_font)
+
+    table_y += row_height
+
+    # Draw table rows with alternating colors
+    for hour, totals in summary_data["Totals"].items():
+        row_color = row_colors[(table_y // row_height) % 2]
+        draw.rectangle([table_x, table_y, img_width - table_x, table_y + row_height], fill=row_color, outline=line_color, width=2)
+        draw.text((table_x + 10, table_y + 10), hour, fill=text_color, font=table_font)
+        for i, vehicle_class in enumerate(vehicle_classes):
+            draw.text((table_x + (i + 1) * col_width + 10, table_y + 10), str(totals[vehicle_class]), fill=text_color, font=table_font)
+        table_y += row_height
+
+    # Draw the total row
+    row_color = row_colors[(table_y // row_height) % 2]
+    draw.rectangle([table_x, table_y, img_width - table_x, table_y + row_height], fill=row_color, outline=line_color, width=2)
+    draw.text((table_x + 10, table_y + 10), "Sum Total", fill=text_color, font=table_font)
+    draw.text((table_x + col_width + 10, table_y + 10), str(summary_data["Sum Total"]), fill=text_color, font=table_font)
+
+    # Save the image to a byte buffer
+    buffer = io.BytesIO()
+    image.save(buffer, format="JPEG")
+    buffer.seek(0)
+
+    # Send the image as a downloadable file
+    return send_file(buffer, mimetype='image/jpeg', as_attachment=True, download_name="report.jpg")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
